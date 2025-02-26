@@ -64,19 +64,19 @@ namespace SIMPLE_WEB_API.repo.implementation
         public async Task UpdateAsync(CategoryViewModel items)
         {
             var check = await _context.categories.FindAsync(items.Id);
-            if(check == null)
+            if (check == null)
             {
-                return;
+                
             }
-            var data = new CategoryViewModel
-            {
-                Id = check.Id,
-                Name = check.Name,
-                Description = check.Description,
-            };
 
-            _context.Update(data);
-            await _context.SaveChangesAsync();
+            check.Id = items.Id;
+            check.Description = items.Description;
+            check.Name = items.Name;
+            _context.categories.Update(check);
+            await _context.TrySaveChangesAsync();
+
+
+
         }
     }
 }
