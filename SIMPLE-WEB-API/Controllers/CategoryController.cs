@@ -21,33 +21,32 @@ namespace SIMPLE_WEB_API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CategoryViewModel data)
+        public async Task<IActionResult> Create(Category data)
         {
-            await _repo.CreateAsync(data);
+            await _db.categories.AddAsync(data);
+            await _db.TrySaveChangesAsync();
             return CreatedAtAction(nameof(GetbyId), new { data.Id }, data);
         }
         [HttpGet]
         public async Task<IActionResult> GetbyId(Guid id)
         {
-           var data = await _repo.GetById(id);
+           var data = await _db.categories.FindAsync(id);
             return Ok(data);
 
         }
 
         [HttpPut]
-        public async Task<IActionResult> Update(CategoryViewModel items)
+        public async Task<IActionResult> Update(Category items)
         {
-            //var result =  _repo.UpdateAsync(data);
-            //return Ok(result);
             var check = await _db.categories.FindAsync(items.Id);
             if (check == null)
             {
                 return NotFound("id not found");
             }
 
-            check.Id = items.Id;
-            check.Description = items.Description;
-            check.Name = items.Name;
+            //check.Id = items.Id;
+            //check.Description = items.Description;
+            //check.Name = items.Name;
             _db.categories.Update(check);
             await _db.TrySaveChangesAsync();
             return Ok(check);
@@ -56,7 +55,13 @@ namespace SIMPLE_WEB_API.Controllers
         [HttpDelete]
         public async Task<IActionResult> Delete(Guid id)
         {
-            await _repo.DeleteAsync(id);
+           var getid = await _db.categories.FindAsync(id);
+            if (getid == null)
+            {
+                return NotFound("id not found");
+            }
+            _db.categories.Remove(getid);
+            await _db.TrySaveChangesAsync();
             return NoContent();
         }
     }
