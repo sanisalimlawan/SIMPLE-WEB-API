@@ -12,6 +12,7 @@ namespace SIMPLE_WEB_API.Data
         }
 
         public DbSet<Category> categories { get; set; }
+        public DbSet<Product> products { get; set; }
 
         public async Task<bool> TrySaveChangesAsync()
         {

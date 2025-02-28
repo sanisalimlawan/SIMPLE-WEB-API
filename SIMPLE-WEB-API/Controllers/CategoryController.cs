@@ -3,8 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SIMPLE_WEB_API.Data;
 using SIMPLE_WEB_API.Data.Entities;
-using SIMPLE_WEB_API.repo;
-using SIMPLE_WEB_API.ViewModel;
+using SIMPLE_WEB_API.Paginationfilter;
 
 namespace SIMPLE_WEB_API.Controllers
 {
@@ -12,11 +11,9 @@ namespace SIMPLE_WEB_API.Controllers
     [ApiController]
     public class CategoryController : ControllerBase
     {
-        private readonly ICategoryRepo _repo;
         private readonly ApplicationDbContext _db;
-        public CategoryController(ICategoryRepo repo, ApplicationDbContext db)
+        public CategoryController(ApplicationDbContext db)
         {
-            _repo = repo;
             _db = db;
         }
 
@@ -27,7 +24,7 @@ namespace SIMPLE_WEB_API.Controllers
             await _db.TrySaveChangesAsync();
             return CreatedAtAction(nameof(GetbyId), new { data.Id }, data);
         }
-        [HttpGet]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetbyId(Guid id)
         {
            var data = await _db.categories.FindAsync(id);
@@ -44,9 +41,9 @@ namespace SIMPLE_WEB_API.Controllers
                 return NotFound("id not found");
             }
 
-            //check.Id = items.Id;
-            //check.Description = items.Description;
-            //check.Name = items.Name;
+            check.Id = items.Id;
+            check.Description = items.Description;
+            check.Name = items.Name;
             _db.categories.Update(check);
             await _db.TrySaveChangesAsync();
             return Ok(check);
@@ -63,6 +60,18 @@ namespace SIMPLE_WEB_API.Controllers
             _db.categories.Remove(getid);
             await _db.TrySaveChangesAsync();
             return NoContent();
+        }
+
+        [HttpGet("PAginatedList")]
+        public async Task<ActionResult<IEnumerable<Category>>> getAll([FromQuery] FilterOPtions options)
+        {
+            var getall = _db.categories.AsNoTracking();
+            var count = await getall.CountAsync();
+            var items = await getall.Skip((options.PageIndex - 1) * options.PageSize)
+                .Take(options.PageSize).ToListAsync();
+            var dat = PaginatedList<Category>.Create(items, count, options);
+            return Ok(dat);
+            
         }
     }
 }
